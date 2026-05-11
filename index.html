@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="eu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zer-Nori: EZEZKOAK (Negatiboa)</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --verde: #2e7d32;
+            --rojo: #c62828;
+            --blanco-gris: #eeeeee;
+            --fondo-caja: #ffffff;
+            --texto: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--blanco-gris);
+            color: var(--texto);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #joko-kutxa {
+            background-color: var(--fondo-caja);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 95%;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .ezkutuan { display: none !important; }
+
+        h1 { color: var(--verde); margin-top: 0; }
+
+        .info-box {
+            text-align: left;
+            background: #f9f9f9;
+            padding: 15px;
+            border-left: 5px solid var(--verde);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--verde);
+        }
+
+        .galdera-area {
+            background: #f1f8e9;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        #esaldi-eredua {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 1.1rem;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            width: 80%;
+            text-align: center;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            background-color: var(--verde);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        button:hover { background-color: #1b5e20; }
+
+        #feedback { font-size: 2.5rem; height: 50px; margin-top: 10px; }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-barrua {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 85%;
+        }
+
+        .gorria { border-top: 10px solid var(--rojo); }
+        .berdea { border-top: 10px solid var(--verde); }
+    </style>
+</head>
+<body>
+
+<div id="joko-kutxa">
+    
+    <!-- 1. HASIERA PANTILA -->
+    <div id="pantaila-hasiera">
+        <h1>ZER-NORI: Ezezkoak</h1>
+        <div class="info-box">
+            <strong>Nola jokatu:</strong>
+            <p>Esaldi bat agertuko zaizu baiezkoan. Zuk <strong>ezezkoa</strong> idatzi behar duzu.</p>
+            <ul>
+                <li><strong>Baiezkoa:</strong> Niri kartera erori zait.</li>
+                <li><strong>Ezezkoa:</strong> Niri <u>ez zait</u> kartera erori. (edo <i>Niri kartera <u>ez zait</u> erori</i>)</li>
+            </ul>
+            <p>50 puntu lortu behar dituzu. Puntuazioa galduko duzu huts eginez gero!</p>
+        </div>
+        <button onclick="hasiJokoa()">HASI ERRONKA</button>
+    </div>
+
+    <!-- 2. JOKOAREN AREA -->
+    <div id="pantaila-jokoa" class="ezkutuan">
+        <div class="stats">
+            <span>Puntuak: <span id="puntuak">0</span> / 50</span>
+            <span>Denbora: <span id="krono">00:00</span></span>
+        </div>
+        <div class="galdera-area">
+            <span id="esaldi-eredua">Pasatu ezezkora:</span>
+            <h2 id="esaldia-baiezkoa">...</h2>
+            <input type="text" id="erantzun-input" placeholder="Idatzi ezezko esaldia hemen..." autocomplete="off">
+        </div>
+        <button onclick="egiaztatu()">Egiaztatu</button>
+        <div id="feedback"></div>
+    </div>
+
+    <!-- 3. HUTS EGINDAKO MODALA -->
+    <div id="modal-huts" class="modal ezkutuan">
+        <div class="modal-barrua gorria">
+            <h2 style="color: var(--rojo)">Huts egin duzu!</h2>
+            <p>Erantzun zuzenetako bat hau zen:</p>
+            <p id="esaldi-zuzena" style="font-weight: bold; background: #fff3f3; padding: 10px; border-radius: 5px;"></p>
+            <button onclick="berrekin()" style="background-color: var(--rojo)">BERRIRO SAIATU</button>
+        </div>
+    </div>
+
+    <!-- 4. IRABAZI MODALA -->
+    <div id="modal-irabazi" class="modal ezkutuan">
+        <div class="modal-barrua berdea">
+            <h1>MAISUA! 🏆</h1>
+            <p>Ezezko esaldiak ezin hobeto menderatzen dituzu!</p>
+            <h2 id="denbora-emaitza" style="color: var(--verde)"></h2>
+            <button onclick="location.reload()">HASIERARA</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // DATUAK: Baiezkoa eta bi ezezko posibleak
+    const esaldiak = [
+        // ORAINALDIA
+        {b: "Niri kartera erori zait.", e1: "Niri ez zait kartera erori", e2: "Niri kartera ez zait erori"},
+        {b: "Aneri giltzak galdu zaizkio.", e1: "Aneri ez zaizkio giltzak galdu", e2: "Aneri giltzak ez zaizkio galdu"},
+        {b: "Hari mugikorra apurtu zaio.", e1: "Hari ez zaio mugikorra apurtu", e2: "Hari mugikorra ez zaio apurtu"},
+        {b: "Guri autobusa galdu zaigu.", e1: "Guri ez zaigu autobusa galdu", e2: "Guri autobusa ez zaigu galdu"},
+        {b: "Zuei kamisetak apurtu zaizkizue.", e1: "Zuei ez zaizkizue kamisetak apurtu", e2: "Zuei kamisetak ez zaizkizue apurtu"},
+        {b: "Haiei kotxea hondatu zaie.", e1: "Haiei ez zaie kotxea hondatu", e2: "Haiei kotxea ez zaie hondatu"},
+        {b: "Mireni liburua busti zaio.", e1: "Mireni ez zaio liburua busti", e2: "Mireni liburua ez zaio busti"},
+        {b: "Zuri kafeak hoztu zaizkizu.", e1: "Zuri ez zaizkizu kafeak hoztu", e2: "Zuri kafeak ez zaizkizu hoztu"},
+        {b: "Juleni lorea zimeldu zaio.", e1: "Juleni ez zaio lorea zimeldu", e2: "Juleni lorea ez zaio zimeldu"},
+        {b: "Guri argiak itzali zaizkigu.", e1: "Guri ez zaizkigu argiak itzali", e2: "Guri argiak ez zaizkigu itzali"},
+        {b: "Zuei ordenagailuak blokeatu zaizkizue.", e1: "Zuei ez zaizkizue ordenagailuak blokeatu", e2: "Zuei ordenagailuak ez zaizkizue blokeatu"},
+        {b: "6.A-ko ikasleei ateak itxi zaizkie.", e1: "6.A-ko ikasleei ez zaizkie ateak itxi", e2: "6.A-ko ikasleei ateak ez zaizkie itxi"},
+        {b: "Ikerri poltsa hautsi zaio.", e1: "Ikerri ez zaio poltsa hautsi", e2: "Ikerri poltsa ez zaio hautsi"},
+        {b: "Zuri kamisetak zikindu zaizkizu.", e1: "Zuri ez zaizkizu kamisetak zikindu", e2: "Zuri kamisetak ez zaizkizu zikindu"},
+        {b: "Mikeli ogiak erre zaizkio.", e1: "Mikeli ez zaizkio ogiak erre", e2: "Mikeli ogiak ez zaizkio erre"},
+        {b: "Guri irratiak apurtu zaizkigu.", e1: "Guri ez zaizkigu irratiak apurtu", e2: "Guri irratiak ez zaizkigu apurtu"},
+        {b: "Leireri planak aldatu zaizkio.", e1: "Leireri ez zaizkio planak aldatu", e2: "Leireri planak ez zaizkio aldatu"},
+        {b: "Paco eta Feliperi kafeak hoztu zaizkie.", e1: "Paco eta Feliperi ez zaizkie kafeak hoztu", e2: "Paco eta Feliperi kafeak ez zaizkie hoztu"},
+        {b: "Niri telefonoa erori zait.", e1: "Niri ez zait telefonoa erori", e2: "Niri telefonoa ez zait erori"},
+        {b: "Zuri dirua amaitu zaizu.", e1: "Zuri ez zaizu dirua amaitu", e2: "Zuri dirua ez zaizu amaitu"},
+        {b: "Maddiri betaurrekoak galdu zaizkio.", e1: "Maddiri ez zaizkio betaurrekoak galdu", e2: "Maddiri betaurrekoak ez zaizkio galdu"},
+        {b: "Guri ur botilak bukatu zaizkigu.", e1: "Guri ez zaizkigu ur botilak bukatu", e2: "Guri ur botilak ez zaizkigu bukatu"},
+        {b: "Zuei boligrafo berdeak galdu zaizkizue.", e1: "Zuei ez zaizkizue boligrafo berdeak galdu", e2: "Zuei boligrafo berdeak ez zaizkizue galdu"},
+        {b: "Haiei arrainak gaixotu zaizkie.", e1: "Haiei ez zaizkie arrainak gaixotu", e2: "Haiei arrainak ez zaizkie gaixotu"},
+        {b: "Peruri ariketa ahaztu zaio.", e1: "Peruri ez zaio ariketa ahaztu", e2: "Peruri ariketa ez zaio ahaztu"},
+        {b: "Zuri ideia ikaragarriak bururatu zaizkizu.", e1: "Zuri ez zaizkizu ideia ikaragarriak bururatu", e2: "Zuri ideia ikaragarriak ez zaizkizu bururatu"},
+        {b: "Gure lagunari katuak ezkutatu zaizkio.", e1: "Gure lagunari ez zaizkio katuak ezkutatu", e2: "Gure lagunari katuak ez zaizkio ezkutatu"},
+        {b: "Guri kafe makina guztiak hondatu zaizkigu.", e1: "Guri ez zaizkigu kafe makina guztiak hondatu", e2: "Guri kafe makina guztiak ez zaizkigu hondatu"},
+        {b: "Juneri mugikorra itzali zaio.", e1: "Juneri ez zaio mugikorra itzali", e2: "Juneri mugikorra ez zaio itzali"},
+        {b: "Haiei telebistak apurtu zaizkie.", e1: "Haiei ez zaizkie telebistak apurtu", e2: "Haiei telebistak ez zaizkie apurtu"},
+        {b: "Niri txapela galdu zait.", e1: "Niri ez zait txapela galdu", e2: "Niri txapela ez zait galdu"},
+        {b: "Zuri etxeko leihoak ireki zaizkizu.", e1: "Zuri ez zaizkizu etxeko leihoak ireki", e2: "Zuri etxeko leihoak ez zaizkizu ireki"},
+        {b: "Joni atea trabatu zaio.", e1: "Joni ez zaio atea trabatu", e2: "Joni atea ez zaio trabatu"},
+        {b: "Guri autoak gelditu zaizkigu.", e1: "Guri ez zaizkigu autoak gelditu", e2: "Guri autoak ez zaizkigu gelditu"},
+        {b: "Zuei arropak busti zaizkizue.", e1: "Zuei ez zaizkizue arropak busti", e2: "Zuei arropak ez zaizkizue busti"},
+        {b: "Haiei landareak hil zaizkie.", e1: "Haiei ez zaizkie landareak hil", e2: "Haiei landareak ez zaizkie hil"},
+        {b: "Aneri prakak hautsi zaizkio.", e1: "Aneri ez zaizkio prakak hautsi", e2: "Aneri prakak ez zaizkio hautsi"},
+        {b: "Zuri ur botila erori zaizu.", e1: "Zuri ez zaizu ur botila erori", e2: "Zuri ur botila ez zaizu erori"},
+        {b: "Irakasleari ordenagailua moteldu zaio.", e1: "Irakasleari ez zaio ordenagailua moteldu", e2: "Irakasleari ordenagailua ez zaio moteldu"},
+        {b: "Guri argazkiak ezabatu zaizkigu.", e1: "Guri ez zaizkigu argazkiak ezabatu", e2: "Guri argazkiak ez zaizkigu ezabatu"},
+        {b: "Zuei oporrak amaitu zaizkizue.", e1: "Zuei ez zaizkizue oporrak amaitu", e2: "Zuei oporrak ez zaizkizue amaitu"},
+        {b: "Beste taldeari planak zapuztu zaizkio.", e1: "Beste taldeari ez zaizkio planak zapuztu", e2: "Beste taldeari planak ez zaizkio zapuztu"},
+        {b: "Niri txakurra lo geratu zait.", e1: "Niri ez zait txakurra lo geratu", e2: "Niri txakurra ez zait lo geratu"},
+        {b: "Mireni pastel zatiak erori zaizkio.", e1: "Mireni ez zaizkio pastel zatiak erori", e2: "Mireni pastel zatiak ez zaizkio erori"},
+        {b: "Hari autoaren giltzak galdu zaizkio.", e1: "Hari ez zaizkio autoaren giltzak galdu", e2: "Hari autoaren giltzak ez zaizkio galdu"},
+        {b: "Guri bideak nahastu zaizkigu.", e1: "Guri ez zaizkigu bideak nahastu", e2: "Guri bideak ez zaizkigu nahastu"},
+        {b: "Zuei bateriak bukatu zaizkizue.", e1: "Zuei ez zaizkizue bateriak bukatu", e2: "Zuei bateriak ez zaizkizue bukatu"},
+        {b: "Haiei aurpegiak gorritu zaizkie.", e1: "Haiei ez zaizkie aurpegiak gorritu", e2: "Haiei aurpegiak ez zaizkie gorritu"},
+        {b: "Iratiri sudurra apurtu zaio.", e1: "Iratiri ez zaio sudurra apurtu", e2: "Iratiri sudurra ez zaio apurtu"},
+        {b: "Zuri alkandorak zimurtu zaizkizu.", e1: "Zuri ez zaizkizu alkandorak zimurtu", e2: "Zuri alkandorak ez zaizkizu zimurtu"},
+        {b: "Hari zapatilak hautsi zaizkio.", e1: "Hari ez zaizkio zapatilak hautsi", e2: "Hari zapatilak ez zaizkio hautsi"},
+        {b: "Guri telefonoak deskargatu zaizkigu.", e1: "Guri ez zaizkigu telefonoak deskargatu", e2: "Guri telefonoak ez zaizkigu deskargatu"},
+        {b: "Zuei paperak apurtu zaizkizue.", e1: "Zuei ez zaizkizue paperak apurtu", e2: "Zuei paperak ez zaizkizue apurtu"},
+        {b: "Dendako langileei txoriak eskapatu zaizkie.", e1: "Dendako langileei ez zaizkie txoriak eskapatu", e2: "Dendako langileei txoriak ez zaizkie eskapatu"},
+        {b: "Beñati proiektua egitea ahaztu zaio.", e1: "Beñati ez zaio proiektua egitea ahaztu", e2: "Beñati proiektua egitea ez zaio ahaztu"},
+        {b: "Zuri lagunak agertu zaizkizu.", e1: "Zuri ez zaizkizu lagunak agertu", e2: "Zuri lagunak ez zaizkizu agertu"},
+        {b: "Hari gosariak hoztu zaizkio.", e1: "Hari ez zaizkio gosariak hoztu", e2: "Hari gosariak ez zaizkio hoztu"},
+        {b: "Guri ateko giltzak trabatu zaizkigu.", e1: "Guri ez zaizkigu ateko giltzak trabatu", e2: "Guri ateko giltzak ez zaizkigu trabatu"},
+        {b: "Zuei balioak galdu zaizkizue.", e1: "Zuei ez zaizkizue balioak galdu", e2: "Zuei balioak ez zaizkizue galdu"},
+        {b: "Niri mandarinak gustatzen zaizkit.", e1: "Niri ez zaizkit mandarinak gustatzen", e2: "Niri mandarinak ez zaizkit gustatzen"},
+        {b: "Niri musika gustatzen zait.", e1: "Niri ez zait musika gustatzen", e2: "Niri musika ez zait gustatzen"},
+        {b: "Zuri pelikulak amaitu zaizkizu.", e1: "Zuri ez zaizkizu pelikulak amaitu", e2: "Zuri pelikulak ez zaizkizu amaitu"},
+        {b: "Oihaneri kafea erori zaio.", e1: "Oihaneri ez zaio kafea erori", e2: "Oihaneri kafea ez zaio erori"},
+        {b: "Guri telebistak piztu zaizkigu.", e1: "Guri ez zaizkigu telebistak piztu", e2: "Guri telebistak ez zaizkigu piztu"},
+        {b: "Zuei lagunak bizitan etorri zaizkizue.", e1: "Zuei ez zaizkizue lagunak bizitan etorri", e2: "Zuei lagunak bizitan ez zaizkizue etorri"},
+        {b: "Nire gurasoei oparia gustatu zaie.", e1: "Nire gurasoei ez zaie oparia gustatu", e2: "Nire gurasoei oparia ez zaie gustatu"},
+        {b: "Niri etxerako lanak ahaztu zaizkit.", e1: "Niri ez zaizkit etxerako lanak ahaztu", e2: "Niri etxerako lanak ez zaizkit ahaztu"},
+        {b: "Zuri prakak busti zaizkizu.", e1: "Zuri ez zaizkizu prakak busti", e2: "Zuri prakak ez zaizkizu busti"},
+        {b: "Berari autobusa berandu iritsi zaio.", e1: "Berari ez zaio autobusa berandu iritsi", e2: "Berari autobusa berandu ez zaio iritsi"},
+        {b: "Guri lepoak luzatu zaizkigu.", e1: "Guri ez zaizkigu lepoak luzatu", e2: "Guri lepoak ez zaizkigu luzatu"},
+        {b: "Zuei leihoak apurtu zaizkizue.", e1: "Zuei ez zaizkizue leihoak apurtu", e2: "Zuei leihoak ez zaizkizue apurtu"},
+        {b: "Maite eta Jaimeri pilotak galdu zaizkie.", e1: "Maite eta Jaimeri ez zaizkie pilotak galdu", e2: "Maite eta Jaimeri pilotak ez zaizkie galdu"},
+        {b: "Aneri argia joan zaio.", e1: "Aneri ez zaio argia joan", e2: "Aneri argia ez zaio joan"},
+        {b: "Zuri bonbilak piztu zaizkizu.", e1: "Zuri ez zaizkizu bonbilak piztu", e2: "Zuri bonbilak ez zaizkizu piztu"},
+        {b: "Hari bazkariak erre zaizkio.", e1: "Hari ez zaizkio bazkariak erre", e2: "Hari bazkariak ez zaizkio erre"},
+        {b: "Guri txartelak galdu zaizkigu.", e1: "Guri ez zaizkigu txartelak galdu", e2: "Guri txartelak ez zaizkigu galdu"},
+        {b: "Zuei oinetakoak askatu zaizkizue.", e1: "Zuei ez zaizkizue oinetakoak askatu", e2: "Zuei oinetakoak ez zaizkizue askatu"},
+        {b: "Haiei umeak lokartu zaizkie.", e1: "Haiei ez zaizkie umeak lokartu", e2: "Haiei umeak ez zaizkie lokartu"},
+        {b: "Niri kotxea zikindu zait.", e1: "Niri ez zait kotxea zikindu", e2: "Niri kotxea ez zait zikindu"},
+        {b: "Zuri lanak pilatu zaizkizu.", e1: "Zuri ez zaizkizu lanak pilatu", e2: "Zuri lanak ez zaizkizu pilatu"},
+        {b: "Juleni ur botilak erori zaizkio.", e1: "Juleni ez zaizkio ur botilak erori", e2: "Juleni ur botilak ez zaizkio erori"},
+        {b: "Guri gure telefono zenbakiak ahaztu zaizkigu.", e1: "Guri ez zaizkigu gure telefono zenbakiak ahaztu", e2: "Guri gure telefono zenbakiak ez zaizkigu ahaztu"},
+        {b: "Zuei telebista hondatu zaizue.", e1: "Zuei ez zaizue telebista hondatu", e2: "Zuei telebista ez zaizue hondatu"},
+        {b: "Haiei lagunak urrundu zaizkie.", e1: "Haiei ez zaizkie lagunak urrundu", e2: "Haiei lagunak ez zaizkie urrundu"},
+        {b: "Ikerri azterketak txarto atera zaizkio.", e1: "Ikerri ez zaizkio azterketak txarto atera", e2: "Ikerri azterketak txarto ez zaizkio atera"},
+        {b: "Zuri mugikorra desagertu zaizu.", e1: "Zuri ez zaizu mugikorra desagertu", e2: "Zuri mugikorra ez zaizu desagertu"},
+        {b: "Hari autoak matxuratu zaizkio.", e1: "Hari ez zaizkio autoak matxuratu", e2: "Hari autoak ez zaizkio matxuratu"},
+        {b: "Guri irakasleak etorri zaizkigu.", e1: "Guri ez zaizkigu irakasleak etorri", e2: "Guri irakasleak ez zaizkigu etorri"},
+        {b: "Irakasleari ikasle guztiak lokartuta geratu zaizkio.", e1: "Irakasleari ez zaizkio ikasle guztiak lokartuta geratu", e2: "Irakasleari ikasle guztiak lokartuta ez zaizkio geratu"},
+        {b: "Haiei oporrak hasi zaizkie.", e1: "Haiei ez zaizkie oporrak hasi", e2: "Haiei oporrak ez zaizkie hasi"},
+        {b: "Niri jaka busti zait.", e1: "Niri ez zait jaka busti", e2: "Niri jaka ez zait busti"},
+        {b: "Zuri motxila ireki zaizu.", e1: "Zuri ez zaizu motxila ireki", e2: "Zuri motxila ez zaizu ireki"},
+        {b: "Borjari argazkiak hondatu zaizkio.", e1: "Borjari ez zaizkio argazkiak hondatu", e2: "Borjari argazkiak ez zaizkio hondatu"},
+        {b: "Guri etxerako lanak amaitu zaizkigu.", e1: "Guri ez zaizkigu etxerako lanak amaitu", e2: "Guri etxerako lanak ez zaizkigu amaitu"},
+        {b: "Zuei liburua galdu zaizue.", e1: "Zuei ez zaizue liburua galdu", e2: "Zuei liburua ez zaizue galdu"},
+        {b: "Haiei ateak ireki zaizkie.", e1: "Haiei ez zaizkie ateak ireki", e2: "Haiei ateak ez zaizkie ireki"},
+        {b: "Niri kafeak gustatzen zaizkit.", e1: "Niri ez zaizkit kafeak gustatzen", e2: "Niri kafeak ez zaizkit gustatzen"},
+        {b: "Zuri Aneren liburua galdu zaizu.", e1: "Zuri ez zaizu Aneren liburua galdu", e2: "Zuri Aneren liburua ez zaizu galdu"},
+        {b: "Pakori erlojua gelditu zaio.", e1: "Pakori ez zaio erlojua gelditu", e2: "Pakori erlojua ez zaio gelditu"},
+        {b: "Niri pazientzia agortu zait.", e1: "Niri ez zait pazientzia agortu", e2: "Niri pazientzia ez zait agortu"},
+
+        // IRAGANA
+        {b: "Niri kartera erori zitzaidan.", e1: "Niri ez zitzaidan kartera erori", e2: "Niri kartera ez zitzaidan erori"},
+        {b: "Aneri giltzak galdu zitzaizkion.", e1: "Aneri ez zitzaizkion giltzak galdu", e2: "Aneri giltzak ez zitzaizkion galdu"},
+        {b: "Hari mugikorra apurtu zitzaion.", e1: "Hari ez zitzaion mugikorra apurtu", e2: "Hari mugikorra ez zitzaion apurtu"},
+        {b: "Guri autobusa galdu zitzaigun.", e1: "Guri ez zitzaigun autobusa galdu", e2: "Guri autobusa ez zitzaigun galdu"},
+        {b: "Zuei kamisetak apurtu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen kamisetak apurtu", e2: "Zuei kamisetak ez zitzaizkizuen apurtu"},
+        {b: "Haiei kotxea hondatu zitzaien.", e1: "Haiei ez zitzaien kotxea hondatu", e2: "Haiei kotxea ez zitzaien hondatu"},
+        {b: "Mireni liburua busti zitzaion.", e1: "Mireni ez zitzaion liburua busti", e2: "Mireni liburua ez zitzaion busti"},
+        {b: "Zuri kafeak hoztu zitzaizkizun.", e1: "Zuri ez zitzaizkizun kafeak hoztu", e2: "Zuri kafeak ez zitzaizkizun hoztu"},
+        {b: "Juleni lorea zimeldu zitzaion.", e1: "Juleni ez zitzaion lorea zimeldu", e2: "Juleni lorea ez zitzaion zimeldu"},
+        {b: "Guri argiak itzali zitzaizkigun.", e1: "Guri ez zitzaizkigun argiak itzali", e2: "Guri argiak ez zitzaizkigun itzali"},
+        {b: "Zuei ordenagailuak blokeatu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen ordenagailuak blokeatu", e2: "Zuei ordenagailuak ez zitzaizkizuen blokeatu"},
+        {b: "6.A-ko ikasleei ateak itxi zitzaizkien.", e1: "6.A-ko ikasleei ez zitzaizkien ateak itxi", e2: "6.A-ko ikasleei ateak ez zitzaizkien itxi"},
+        {b: "Ikerri poltsa hautsi zitzaion.", e1: "Ikerri ez zitzaion poltsa hautsi", e2: "Ikerri poltsa ez zitzaion hautsi"},
+        {b: "Zuri kamisetak zikindu zitzaizkizun.", e1: "Zuri ez zitzaizkizun kamisetak zikindu", e2: "Zuri kamisetak ez zitzaizkizun zikindu"},
+        {b: "Mikeli ogiak erre zitzaizkion.", e1: "Mikeli ez zitzaizkion ogiak erre", e2: "Mikeli ogiak ez zitzaizkion erre"},
+        {b: "Guri irratiak apurtu zitzaizkigun.", e1: "Guri ez zitzaizkigun irratiak apurtu", e2: "Guri irratiak ez zitzaizkigun apurtu"},
+        {b: "Leireri planak aldatu zitzaizkion.", e1: "Leireri ez zitzaizkion planak aldatu", e2: "Leireri planak ez zitzaizkion aldatu"},
+        {b: "Paco eta Feliperi kafeak hoztu zitzaizkien.", e1: "Paco eta Feliperi ez zitzaizkien kafeak hoztu", e2: "Paco eta Feliperi kafeak ez zitzaizkien hoztu"},
+        {b: "Niri telefonoa erori zitzaidan.", e1: "Niri ez zitzaidan telefonoa erori", e2: "Niri telefonoa ez zitzaidan erori"},
+        {b: "Zuri dirua amaitu zitzaizun.", e1: "Zuri ez zitzaizun dirua amaitu", e2: "Zuri dirua ez zitzaizun amaitu"},
+        {b: "Maddiri betaurrekoak galdu zitzaizkion.", e1: "Maddiri ez zitzaizkion betaurrekoak galdu", e2: "Maddiri betaurrekoak ez zitzaizkion galdu"},
+        {b: "Guri ur botilak bukatu zitzaizkigun.", e1: "Guri ez zitzaizkigun ur botilak bukatu", e2: "Guri ur botilak ez zitzaizkigun bukatu"},
+        {b: "Zuei boligrafo berdeak galdu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen boligrafo berdeak galdu", e2: "Zuei boligrafo berdeak ez zitzaizkizuen galdu"},
+        {b: "Haiei arrainak gaixotu zitzaizkien.", e1: "Haiei ez zitzaizkien arrainak gaixotu", e2: "Haiei arrainak ez zitzaizkien gaixotu"},
+        {b: "Peruri ariketa ahaztu zitzaion.", e1: "Peruri ez zitzaion ariketa ahaztu", e2: "Peruri ariketa ez zitzaion ahaztu"},
+        {b: "Zuri ideia ikaragarriak bururatu zitzaizkizun.", e1: "Zuri ez zitzaizkizun ideia ikaragarriak bururatu", e2: "Zuri ideia ikaragarriak ez zitzaizkizun bururatu"},
+        {b: "Gure katuak ezkutatu zitzaizkion.", e1: "Gure lagunari ez zitzaizkion katuak ezkutatu", e2: "Gure lagunari katuak ez zitzaizkion ezkutatu"},
+        {b: "Guri kafe makina guztiak hondatu zitzaizkigun.", e1: "Guri ez zitzaizkigun kafe makina guztiak hondatu", e2: "Guri kafe makina guztiak ez zitzaizkigun hondatu"},
+        {b: "Juneri mugikorra itzali zitzaion.", e1: "Juneri ez zitzaion mugikorra itzali", e2: "Juneri mugikorra ez zitzaion itzali"},
+        {b: "Haiei telebistak apurtu zitzaizkien.", e1: "Haiei ez zitzaizkien telebistak apurtu", e2: "Haiei telebistak ez zitzaizkien apurtu"},
+        {b: "Niri txapela galdu zitzaidan.", e1: "Niri ez zitzaidan txapela galdu", e2: "Niri txapela ez zitzaidan galdu"},
+        {b: "Zuri etxeko leihoak ireki zitzaizkizun.", e1: "Zuri ez zitzaizkizun etxeko leihoak ireki", e2: "Zuri etxeko leihoak ez zitzaizkizun ireki"},
+        {b: "Joni atea trabatu zitzaion.", e1: "Joni ez zitzaion atea trabatu", e2: "Joni atea ez zitzaion trabatu"},
+        {b: "Guri autoak gelditu zitzaizkigun.", e1: "Guri ez zitzaizkigun autoak gelditu", e2: "Guri autoak ez zitzaizkigun gelditu"},
+        {b: "Zuei arropak busti zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen arropak busti", e2: "Zuei arropak ez zitzaizkizuen busti"},
+        {b: "Haiei landareak hil zitzaizkien.", e1: "Haiei ez zitzaizkien landareak hil", e2: "Haiei landareak ez zitzaizkien hil"},
+        {b: "Aneri prakak hautsi zitzaizkion.", e1: "Aneri ez zitzaizkion prakak hautsi", e2: "Aneri prakak ez zitzaizkion hautsi"},
+        {b: "Zuri ur botila erori zitzaizun.", e1: "Zuri ez zitzaizun ur botila erori", e2: "Zuri ur botila ez zitzaizun erori"},
+        {b: "Irakasleari ordenagailua moteldu zitzaion.", e1: "Irakasleari ez zitzaion ordenagailua moteldu", e2: "Irakasleari ordenagailua ez zitzaion moteldu"},
+        {b: "Guri argazkiak ezabatu zitzaizkigun.", e1: "Guri ez zitzaizkigun argazkiak ezabatu", e2: "Guri argazkiak ez zitzaizkigun ezabatu"},
+        {b: "Zuei oporrak amaitu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen oporrak amaitu", e2: "Zuei oporrak ez zitzaizkizuen amaitu"},
+        {b: "Beste taldeari planak zapuztu zitzaizkion.", e1: "Beste taldeari ez zitzaizkion planak zapuztu", e2: "Beste taldeari planak ez zitzaizkion zapuztu"},
+        {b: "Niri txakurra lo geratu zitzaidan.", e1: "Niri ez zitzaidan txakurra lo geratu", e2: "Niri txakurra ez zitzaidan lo geratu"},
+        {b: "Mireni pastel zatiak erori zitzaizkion.", e1: "Mireni ez zitzaizkion pastel zatiak erori", e2: "Mireni pastel zatiak ez zitzaizkion erori"},
+        {b: "Hari autoaren giltzak galdu zitzaizkion.", e1: "Hari ez zitzaizkion autoaren giltzak galdu", e2: "Hari autoaren giltzak ez zitzaizkion galdu"},
+        {b: "Guri bideak nahastu zitzaizkigun.", e1: "Guri ez zitzaizkigun bideak nahastu", e2: "Guri bideak ez zitzaizkigun nahastu"},
+        {b: "Zuei bateriak bukatu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen bateriak bukatu", e2: "Zuei bateriak ez zitzaizkizuen bukatu"},
+        {b: "Haiei aurpegiak gorritu zitzaizkien.", e1: "Haiei ez zitzaizkien aurpegiak gorritu", e2: "Haiei aurpegiak ez zitzaizkien gorritu"},
+        {b: "Iratiri sudurra apurtu zitzaion.", e1: "Iratiri ez zitzaion sudurra apurtu", e2: "Iratiri sudurra ez zitzaion apurtu"},
+        {b: "Zuri alkandorak zimurtu zitzaizkizun.", e1: "Zuri ez zitzaizkizun alkandorak zimurtu", e2: "Zuri alkandorak ez zitzaizkizun zimurtu"},
+        {b: "Hari zapatilak hautsi zitzaizkion.", e1: "Hari ez zitzaizkion zapatilak hautsi", e2: "Hari zapatilak ez zitzaizkion hautsi"},
+        {b: "Guri telefonoak deskargatu zitzaizkigun.", e1: "Guri ez zitzaizkigun telefonoak deskargatu", e2: "Guri telefonoak ez zitzaizkigun deskargatu"},
+        {b: "Zuei paperak apurtu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen paperak apurtu", e2: "Zuei paperak ez zitzaizkizuen apurtu"},
+        {b: "Dendako langileei txoriak eskapatu zitzaizkien.", e1: "Dendako langileei ez zitzaizkien txoriak eskapatu", e2: "Dendako langileei txoriak ez zitzaizkien eskapatu"},
+        {b: "Beñati proiektua egitea ahaztu zitzaion.", e1: "Beñati ez zitzaion proiektua egitea ahaztu", e2: "Beñati proiektua egitea ez zitzaion ahaztu"},
+        {b: "Zuri lagunak agertu zitzaizkizun.", e1: "Zuri ez zitzaizkizun lagunak agertu", e2: "Zuri lagunak ez zitzaizkizun agertu"},
+        {b: "Hari gosariak hoztu zitzaizkion.", e1: "Hari ez zitzaizkion gosariak hoztu", e2: "Hari gosariak ez zitzaizkion hoztu"},
+        {b: "Guri ateko giltzak trabatu zitzaizkigun.", e1: "Guri ez zitzaizkigun ateko giltzak trabatu", e2: "Guri ateko giltzak ez zitzaizkigun trabatu"},
+        {b: "Zuei balioak galdu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen balioak galdu", e2: "Zuei balioak ez zitzaizkizuen galdu"},
+        {b: "Niri mandarinak gustatzen zitzaizkidan.", e1: "Niri ez zitzaizkidan mandarinak gustatzen", e2: "Niri mandarinak ez zitzaizkidan gustatzen"},
+        {b: "Niri musika gustatzen zitzaidan.", e1: "Niri ez zitzaidan musika gustatzen", e2: "Niri musika ez zitzaidan gustatzen"},
+        {b: "Zuri pelikulak amaitu zitzaizkizun.", e1: "Zuri ez zitzaizkizun pelikulak amaitu", e2: "Zuri pelikulak ez zitzaizkizun amaitu"},
+        {b: "Oihaneri kafea erori zitzaion.", e1: "Oihaneri ez zitzaion kafea erori", e2: "Oihaneri kafea ez zitzaion erori"},
+        {b: "Guri telebistak piztu zitzaizkigun.", e1: "Guri ez zitzaizkigun telebistak piztu", e2: "Guri telebistak ez zitzaizkigun piztu"},
+        {b: "Zuei jlagunak bizitan etorri zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen lagunak bizitan etorri", e2: "Zuei lagunak bizitan ez zitzaizkizuen etorri"},
+        {b: "Nire gurasoei oparia gustatu zitzaien.", e1: "Nire gurasoei ez zitzaien oparia gustatu", e2: "Nire gurasoei oparia ez zitzaien gustatu"},
+        {b: "Niri herenegun etxerako lanak ahaztu zitzaizkidan.", e1: "Niri ez zitzaizkidan etxerako lanak ahaztu", e2: "Niri etxerako lanak ez zitzaizkidan ahaztu"},
+        {b: "Zuri prakak busti zitzaizkizun.", e1: "Zuri ez zitzaizkizun prakak busti", e2: "Zuri prakak ez zitzaizkizun busti"},
+        {b: "Berari autobusa berandu iritsi zitzaion.", e1: "Berari ez zitzaion autobusa berandu iritsi", e2: "Berari autobusa berandu ez zitzaion iritsi"},
+        {b: "Guri lepoak luzatu zitzaizkigun.", e1: "Guri ez zitzaizkigun lepoak luzatu", e2: "Guri lepoak ez zitzaizkigun luzatu"},
+        {b: "Zuei leihoak apurtu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen leihoak apurtu", e2: "Zuei leihoak ez zitzaizkizuen apurtu"},
+        {b: "Maite eta Jaimeri pilotak galdu zitzaizkien.", e1: "Maite eta Jaimeri ez zitzaizkien pilotak galdu", e2: "Maite eta Jaimeri pilotak ez zitzaizkien galdu"},
+        {b: "Aneri argia joan zitzaion.", e1: "Aneri ez zitzaion argia joan", e2: "Aneri argia ez zitzaion joan"},
+        {b: "Zuri bonbilak piztu zitzaizkizun.", e1: "Zuri ez zitzaizkizun bonbilak piztu", e2: "Zuri bonbilak ez zitzaizkizun piztu"},
+        {b: "Hari bazkariak erre zitzaizkion.", e1: "Hari ez zitzaizkion bazkariak erre", e2: "Hari bazkariak ez zitzaizkion erre"},
+        {b: "Guri txartelak galdu zitzaizkigun.", e1: "Guri ez zitzaizkigun txartelak galdu", e2: "Guri txartelak ez zitzaizkigun galdu"},
+        {b: "Zuei oinetakoak askatu zitzaizkizuen.", e1: "Zuei ez zitzaizkizuen oinetakoak askatu", e2: "Zuei oinetakoak ez zitzaizkizuen askatu"},
+        {b: "Haiei umeak lokartu zitzaizkien.", e1: "Haiei ez zitzaizkien umeak lokartu", e2: "Haiei umeak ez zitzaizkien lokartu"},
+        {b: "Niri kotxea zikindu zitzaidan.", e1: "Niri ez zitzaidan kotxea zikindu", e2: "Niri kotxea ez zitzaidan zikindu"},
+        {b: "Zuri lanak pilatu zitzaizkizun.", e1: "Zuri ez zitzaizkizun lanak pilatu", e2: "Zuri lanak ez zitzaizkizun pilatu"},
+        {b: "Juleni ur botilak erori zitzaizkion.", e1: "Juleni ez zitzaizkion ur botilak erori", e2: "Juleni ur botilak ez zitzaizkion erori"},
+        {b: "Guri gure telefono zenbakiak ahaztu zitzaizkigun.", e1: "Guri ez zitzaizkigun gure telefono zenbakiak ahaztu", e2: "Guri gure telefono zenbakiak ez zitzaizkigun ahaztu"},
+        {b: "Zuei telebista hondatu zitzaizuen.", e1: "Zuei ez zitzaizuen telebista hondatu", e2: "Zuei telebista ez zitzaizuen hondatu"},
+        {b: "Haiei lagunak urrundu zitzaizkien.", e1: "Haiei ez zitzaizkien lagunak urrundu", e2: "Haiei lagunak ez zitzaizkien urrundu"},
+        {b: "Ikerri txarto atera zitzaizkion.", e1: "Ikerri ez zitzaizkion azterketak txarto atera", e2: "Ikerri azterketak txarto ez zitzaizkion atera"},
+        {b: "Zuri mugikorra desagertu zitzaizun.", e1: "Zuri ez zitzaizun mugikorra desagertu", e2: "Zuri mugikorra ez zitzaizun desagertu"},
+        {b: "Hari autoak matxuratu zitzaizkion.", e1: "Hari ez zitzaizkion autoak matxuratu", e2: "Hari autoak ez zitzaizkion matxuratu"},
+        {b: "Guri irakasleak etorri zitzaizkigun.", e1: "Guri ez zitzaizkigun irakasleak etorri", e2: "Guri irakasleak ez zitzaizkigun etorri"},
+        {b: "Irakasleari ikasle guztiak lokartuta geratu zitzaizkion.", e1: "Irakasleari ez zitzaizkion ikasle guztiak lokartuta geratu", e2: "Irakasleari ikasle guztiak lokartuta ez zitzaizkion geratu"},
+        {b: "Haiei oporrak hasi zitzaizkien.", e1: "Haiei ez zitzaizkien oporrak hasi", e2: "Haiei oporrak ez zitzaizkien hasi"},
+        {b: "Niri jaka busti zitzaidan.", e1: "Niri ez zitzaidan jaka busti", e2: "Niri jaka ez zitzaidan busti"},
+        {b: "Zuri motxila ireki zitzaizun.", e1: "Zuri ez zitzaizun motxila ireki", e2: "Zuri motxila ez zitzaizun ireki"},
+        {b: "Borjari argazkiak hondatu zitzaizkion.", e1: "Borjari ez zitzaizkion argazkiak hondatu", e2: "Borjari argazkiak ez zitzaizkion hondatu"},
+        {b: "Guri etxerako lanak amaitu zitzaizkigun.", e1: "Guri ez zitzaizkigun etxerako lanak amaitu", e2: "Guri etxerako lanak ez zitzaizkigun amaitu"},
+        {b: "Zuei liburua galdu zitzaizuen.", e1: "Zuei ez zitzaizuen liburua galdu", e2: "Zuei liburua ez zitzaizuen galdu"},
+        {b: "Haiei ateak ireki zitzaizkien.", e1: "Haiei ez zitzaizkien ateak ireki", e2: "Haiei ateak ez zitzaizkien ireki"},
+        {b: "Niri kafeak gustatzen zitzaizkidan.", e1: "Niri ez zitzaizkidan kafeak gustatzen", e2: "Niri kafeak ez zitzaizkidan gustatzen"},
+        {b: "Zuri Aneren liburua galdu zitzaizun.", e1: "Zuri ez zitzaizun Aneren liburua galdu", e2: "Zuri Aneren liburua ez zitzaizun galdu"},
+        {b: "Pakori erlojua gelditu zitzaion.", e1: "Pakori ez zitzaion erlojua gelditu", e2: "Pakori erlojua ez zitzaion gelditu"},
+        {b: "Niri pazientzia agortu zitzaidan.", e1: "Niri ez zitzaidan pazientzia agortu", e2: "Niri pazientzia ez zitzaidan agortu"}
+    ];
+
+    let puntuazioa = 0;
+    let galderaGaurkoa = null;
+    let hasieraDenbora = null;
+    let kronoInterval = null;
+
+    const lortuId = (id) => document.getElementById(id);
+
+    function hasiJokoa() {
+        puntuazioa = 0;
+        lortuId('puntuak').innerText = "0";
+        lortuId('pantaila-hasiera').classList.add('ezkutuan');
+        lortuId('modal-huts').classList.add('ezkutuan');
+        lortuId('pantaila-jokoa').classList.remove('ezkutuan');
+        
+        hasieraDenbora = Date.now();
+        kronoHasi();
+        hurrengoGaldera();
+    }
+
+    function kronoHasi() {
+        if(kronoInterval) clearInterval(kronoInterval);
+        kronoInterval = setInterval(() => {
+            let segunduak = Math.floor((Date.now() - hasieraDenbora) / 1000);
+            let m = Math.floor(segunduak / 60).toString().padStart(2, '0');
+            let s = (segunduak % 60).toString().padStart(2, '0');
+            lortuId('krono').innerText = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function hurrengoGaldera() {
+        if (puntuazioa >= 50) {
+            irabazi();
+            return;
+        }
+        
+        const randomPos = Math.floor(Math.random() * esaldiak.length);
+        galderaGaurkoa = esaldiak[randomPos];
+        
+        lortuId('esaldia-baiezkoa').innerText = galderaGaurkoa.b;
+        lortuId('erantzun-input').value = "";
+        lortuId('feedback').innerText = "";
+        lortuId('erantzun-input').focus();
+    }
+
+    function normalizatu(testua) {
+        // Puntuak kendu eta espazioak garbitu konparaketa errazteko
+        return testua.trim().toLowerCase().replace(/[.,!?;]/g, "");
+    }
+
+    function egiaztatu() {
+        const erabiltzaileTestua = normalizatu(lortuId('erantzun-input').value);
+        const erantzun1 = normalizatu(galderaGaurkoa.e1);
+        const erantzun2 = normalizatu(galderaGaurkoa.e2);
+
+        if (erabiltzaileTestua === erantzun1 || erabiltzaileTestua === erantzun2) {
+            puntuazioa++;
+            lortuId('puntuak').innerText = puntuazioa;
+            lortuId('feedback').innerText = "✔️";
+            setTimeout(hurrengoGaldera, 500);
+        } else {
+            hutsEgin();
+        }
+    }
+
+    function hutsEgin() {
+        clearInterval(kronoInterval);
+        lortuId('esaldi-zuzena').innerText = galderaGaurkoa.e1;
+        lortuId('modal-huts').classList.remove('ezkutuan');
+    }
+
+    function berrekin() {
+        lortuId('modal-huts').classList.add('ezkutuan');
+        hasiJokoa();
+    }
+
+    function irabazi() {
+        clearInterval(kronoInterval);
+        lortuId('pantaila-jokoa').classList.add('ezkutuan');
+        lortuId('denbora-emaitza').innerText = "Zure denbora: " + lortuId('krono').innerText;
+        lortuId('modal-irabazi').classList.remove('ezkutuan');
+        
+        confetti({
+            particleCount: 200,
+            spread: 90,
+            origin: { y: 0.6 }
+        });
+    }
+
+    lortuId('erantzun-input').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') egiaztatu();
+    });
+</script>
+
+</body>
+</html>
